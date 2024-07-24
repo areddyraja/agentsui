@@ -23,7 +23,7 @@ const NavBar = () => {
           <Row className="demo-logo">
             <Col>
               <img
-                src="https://agent.ai/agent.ai/agent.ai-logo-1.png"
+                src="logo.jpg"
                 alt="logo"
                 width="170px"
                 onClick={() => navigate("/")}

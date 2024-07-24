@@ -1,30 +1,81 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 
-const ImageToHtml = () => {
+const Rag = () => {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState("");
+  //const [message, setMessage] = useState("");
   const [htmlResponse, setHtmlResponse] = useState("");
   const { state } = useLocation();
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState('');
+  const [responseMessage, setResponseMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    e.preventDefault();
+    setSelectedFiles(Array.from(e.target.files));
+
+    //const file = e.target.files[0];
+    //if (file) {
+    //  setImage(file);
+    //  const reader = new window.FileReader();
+    //  reader.onloadend = () => {
+    //    setPreview(reader.result);
+    //  };
+    //  reader.readAsDataURL(file);
+    //}
   };
+
+  const Spinner = () => {
+    return <div className="spinner">Loading...</div>;
+  };
+
+  const  handleSendMessage = async () => {
+    // if (message.trim() !== '') {
+    //   setMessages([...messages, message]);
+    //   setMessage('');
+    // }
+    setMessage(message);
+
+    const formData = new FormData()
+    formData.append("query",message)
+
+    //formData.append("query":message)
+    setLoading(true)
+    try {
+        const response = await fetch("http://localhost:8000/chat", {
+          method: "POST",
+          accept:"application/pdf",
+          body: formData,
+        });
+  
+        if (response.ok) {
+          const result = await response.text(); // Get response as text (HTML)
+        //   setHtmlResponse(result);
+        //   setMessage("Chat Send");
+        //   console.log("response:", response);
+        setResponseMessage(result)
+          // console.log('Upload result:', result, response);
+        } else {
+          setMessage("Chat Failed");
+        }
+      } catch (error) {
+        setMessage("Error Chat image.");
+        console.error("Error:", error);
+      } finally {
+        setUploading(false);
+        setLoading(false)
+      }
+    };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!image) {
-      setMessage("Please select an image to upload.");
+    if (!selectedFiles) {
+      setMessage("Please select Document to upload.");
       return;
     }
 
@@ -32,19 +83,28 @@ const ImageToHtml = () => {
     setMessage("");
 
     const formData = new FormData();
-    formData.append("file", image);
+    selectedFiles.forEach((file) => {
+      formData.append('files', file);
+    });
+
+
+    //formData.append("files", image);
 
     try {
-      const response = await fetch("http://localhost:8000/upload", {
+      const response = await fetch("http://localhost:8000/rag", {
         method: "POST",
+        accept:"application/pdf",
         body: formData,
       });
+
+    //   const result = await response.text()
+    //   setResponseMessage(result);
 
       if (response.ok) {
         const result = await response.text(); // Get response as text (HTML)
         setHtmlResponse(result);
-        setMessage("Image uploaded successfully!");
-        console.log("response:", response);
+        
+        //console.log("response:", response);
         // console.log('Upload result:', result, response);
       } else {
         setMessage("Failed to upload image.");
@@ -66,27 +126,27 @@ const ImageToHtml = () => {
           <form onSubmit={handleSubmit} style={styles.form}>
             <input
               type="file"
-              accept="image/*"
+              accept="*/*"
               onChange={handleImageChange}
               style={styles.fileInput}
             />
-            {preview && (
+            {/* {preview && (
               <div style={styles.previewContainer}>
                 <img src={preview} alt="Preview" style={styles.previewImage} />
               </div>
-            )}
+            )} */}
             <button
               type="submit"
               style={styles.uploadButton}
               disabled={uploading}
             >
-              {uploading ? "Uploading..." : "Upload Image"}
+              {uploading ? "Uploading..." : "Upload File"}
             </button>
           </form>
           {message && <p style={styles.message}>{message}</p>}
         </div>
       </div>
-      {htmlResponse && (
+      {/* {htmlResponse && (
         <div style={styles.htmlContainer}>
           <h2>Preview</h2>
           <div
@@ -94,8 +154,8 @@ const ImageToHtml = () => {
             style={styles.htmlPreview}
           ></div>
         </div>
-      )}
-      {htmlResponse && (
+      )} */}
+      {/* {htmlResponse && (
         <div
           style={{
             textAlign: "left",
@@ -110,10 +170,40 @@ const ImageToHtml = () => {
             <code className="html">{htmlResponse}</code>
           </pre>
         </div>
-      )}
+      )} */}
+
+
+    <div className="chat-app">
+      <div className="message-list">
+        {messages.map((msg, index) => (
+          <div key={index} className="message">
+            {msg}
+          </div>
+        ))}
+      </div>
+      <div className="input-container">
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <button onClick={handleSendMessage}>Send</button>
+        {loading && <Spinner />}
+      </div>
+
+      <div>
+        <para>
+            <h2>Response from Agent</h2>
+            {responseMessage}
+        </para>
+      </div>
+    </div>
+
     </>
   );
 };
+
+
 
 const styles = {
   container: {
@@ -182,4 +272,4 @@ const styles = {
   },
 };
 
-export default ImageToHtml;
+export default Rag;

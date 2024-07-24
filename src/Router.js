@@ -13,6 +13,8 @@ import Home from "./Home";
 import Report from "./Report";
 import { AuthProvider } from "./Context";
 import BusinessResearch from "./agents/BusinessResearch";
+import Rag from "./agents/Rag";
+
 
 const RouterComponent = () => {
   const isAuthenticated = true; // Replace with actual authentication logic
@@ -34,6 +36,8 @@ const RouterComponent = () => {
           }
         />
         <Route path="/BusinessResearch" element={<BusinessResearch />} />
+        <Route path="/rag" element={<Rag />} />
+
         <Route
           path="/"
           element={

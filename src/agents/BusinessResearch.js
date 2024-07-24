@@ -26,7 +26,7 @@ const BusinessResearch = () => {
     formData.append("domain", text);
 
     try {
-      const response = await fetch("http://192.168.0.158:8000/submit", {
+      const response = await fetch("http://localhost:8000/submit", {
         method: "POST",
         body: formData,
       });
